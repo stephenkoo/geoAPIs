@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'pg'
 gem 'devise'
-gem 'carrierwave'
+gem 'carrierwave', github: 'carrierwaveuploader/carrierwave'
 gem 'mini_magick'
 gem 'simple_form'
 gem 'mailboxer'

@@ -1,0 +1,117 @@
+<h1>Create a listing</h1>
+
+<div id="locationField">
+  <input id="autocomplete" placeholder="Enter your address"
+         onFocus="geolocate()" type="text"></input>
+</div>
+<%= simple_form_for @listing, html: { multipart: true } do |f| %>
+  <%= f.input :street_address, input_html: { id: 'fullAddr' } %>
+  <%= f.input :building_number, as: :integer %>
+  <%= f.input :suburb, input_html: { id: 'locality' } %>
+  <%= f.input :state, as: :select, collection: @states, input_html: { id: 'administrative_area_level_1' } %>
+  <%= f.input :post_code, as: :integer, input_html: { id: 'postal_code' } %>
+  <%= f.input :listing_pictures, as: :file, :input_html => { :multiple => true } %>
+  <%= f.input :listing_pictures, as: :file, :input_html => { :multiple => true } %>
+  <%= f.input :listing_title %>
+  <%= f.input :listing_description, as: :text %>
+  <%= f.input :place_type %>
+  <%= f.input :room_type %>
+  <%= f.input :housemates_qty, collection: 0..10, prompt: "How many people will renter be living with?", selected: 1 %>
+  <%= f.input :bedroom_qty %>
+  <%= f.input :bathroom_shared%>
+  <%= f.input :parking %>
+  <%= f.input :place_features %>
+  <%= f.input :price_weekly %>
+  <%= f.input :bond_price %>
+  <%= f.input :bills_included %>
+  <%= f.input :bills_weekly %>
+  <%= f.input :stay_length %>
+  <%= f.input :renter_min %>
+  <%= f.input :renter_max %>
+  <%= f.input :renter_gender %>
+  <%= f.input :renter_attributes %>
+  <%= f.button :submit, "Post Listing", class: "submit-btn" %>
+<% end %>
+
+<table class="google_street_fields">
+  <tr>
+    <td class="slimField"><input class="field" id="street_number"
+          disabled="true"></input></td>
+    <td class="wideField" colspan="2"><input class="field" id="route"
+          disabled="true"></input></td>
+  </tr>
+  <tr>
+</table>
+
+<script>
+var placeSearch, autocomplete;
+var componentForm = {
+  street_number: 'short_name',
+  route: 'long_name',
+  locality: 'long_name',
+  administrative_area_level_1: 'short_name',
+  postal_code: 'short_name'
+};
+
+function initAutocomplete() {
+  // Create the autocomplete object, restricting the search to geographical
+  // location types.
+  autocomplete = new google.maps.places.Autocomplete(
+      /** @type {!HTMLInputElement} */(document.getElementById('autocomplete')),
+      {types: ['geocode']});
+
+  // When the user selects an address from the dropdown, populate the address
+  // fields in the form.
+  autocomplete.addListener('place_changed', fillInAddress);
+}
+
+function fillInAddress() {
+  // Get the place details from the autocomplete object.
+  var place = autocomplete.getPlace();
+
+  for (var component in componentForm) {
+    document.getElementById(component).value = '';
+    document.getElementById(component).disabled = false;
+  }
+
+  // Get each component of the address from the place details
+  // and fill the corresponding field on the form.
+  var fullAddress = [];
+  for (var i = 0; i < place.address_components.length; i++) {
+    var addressType = place.address_components[i].types[0];
+    if (componentForm[addressType]) {
+      var val = place.address_components[i][componentForm[addressType]];
+      document.getElementById(addressType).value = val;
+    }
+    if (addressType == "street_number") {
+        fullAddress[0] = val;
+      } else if (addressType == "route") {
+        fullAddress[1] = val;
+      }
+  }
+  document.getElementById('fullAddr').value = fullAddress.join(" ");
+  if (document.getElementById('fullAddr').value !== "") {
+      document.getElementById('fullAddr').disabled = false;
+    }
+}
+
+// Bias the autocomplete object to the user's geographical location,
+// as supplied by the browser's 'navigator.geolocation' object.
+function geolocate() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var geolocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      var circle = new google.maps.Circle({
+        center: geolocation,
+        radius: position.coords.accuracy
+      });
+      autocomplete.setBounds(circle.getBounds());
+    });
+  }
+}
+
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBP-U5s0ELWq7POcoSh1I3ceZccMQvwOgM&libraries=places&callback=initAutocomplete" async defer></script>
